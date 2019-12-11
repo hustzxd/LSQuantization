@@ -1,8 +1,7 @@
 # LSQuantization
 The PyTorch implementation of Learned Step size Quantization (LSQ) in ICLR2020 open review (unofficial)
 
-The experimental results will be updated soon.
-
+**The project is working in progress, and experimental results on ImageNet are not as good as shown in the paper.**
 
 <img src="alpha_curve.png" width="50%" height="50%">
 
