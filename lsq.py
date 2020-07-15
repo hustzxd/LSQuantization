@@ -31,7 +31,7 @@ class FunLSQ(torch.autograd.Function):
         indicate_big = (q_w > Qp).float()
         indicate_middle = torch.ones(indicate_small.shape).to(indicate_small.device) - indicate_small - indicate_big
         grad_alpha = ((indicate_small * Qn + indicate_big * Qp + indicate_middle * (
-                -q_w + q_w.round())) * grad_weight / g).sum().unsqueeze(dim=0)
+                -q_w + q_w.round())) * grad_weight * g).sum().unsqueeze(dim=0)
         grad_weight = indicate_middle * grad_weight
         # The following operation can make sure that alpha is always greater than zero in any case and can also
         # suppress the update speed of alpha. (Personal understanding)
@@ -74,7 +74,8 @@ class Conv2dLSQ(_Conv2dQ):
 
         ## Pslease see STE_LSQ.ipynb for detailed comparison.
         """ Method1: 
-        alpha = grad_scale(self.alpha, self.alpha_scale)
+        g = 1.0 / math.sqrt(self.weight.numel() * Qp)
+        alpha = grad_scale(self.alpha, g)
         w = self.weight / alpha
         w = w.clamp(-(2 ** (self.nbits - 1)), (2 ** (self.nbits - 1) - 1))
         q_w = round_pass(w)
@@ -84,7 +85,7 @@ class Conv2dLSQ(_Conv2dQ):
         # Method2:
         Qn = -2 ** (self.nbits - 1)
         Qp = 2 ** (self.nbits - 1) - 1
-        g = math.sqrt(self.weight.numel() * Qp)
+        g = 1.0 / math.sqrt(self.weight.numel() * Qp)
         w_q = FunLSQ.apply(self.weight, self.alpha, g, Qn, Qp)
         # wq = y.transpose(0, 1).reshape(self.weight.shape).detach() + self.weight - self.weight.detach()
         return F.conv2d(x, w_q, self.bias, self.stride,
@@ -103,7 +104,7 @@ class LinearLSQ(_LinearQ):
             self.init_state.fill_(1)
         Qn = -2 ** (self.nbits - 1)
         Qp = 2 ** (self.nbits - 1) - 1
-        g = math.sqrt(self.weight.numel() * Qp)
+        g = 1.0 / math.sqrt(self.weight.numel() * Qp)
         w_q = FunLSQ.apply(self.weight, self.alpha, g, Qn, Qp)
         return F.conv2d(input, w_q, self.bias, self.stride,
                         self.padding, self.dilation, self.groups)
@@ -125,6 +126,6 @@ class ActLSQ(_ActQ):
         else:
             Qn = 0
             Qp = 2 ** self.nbits - 1
-        g = math.sqrt(x.numel() * Qp)
+        g = 1.0 / math.sqrt(x.numel() * Qp)
         x_q = FunLSQ.apply(x, self.alpha, g, Qn, Qp)
         return x_q
