@@ -32,6 +32,10 @@ class FunLSQ(torch.autograd.Function):
         indicate_middle = torch.ones(indicate_small.shape).to(indicate_small.device) - indicate_small - indicate_big
         grad_alpha = ((indicate_small * Qn + indicate_big * Qp + indicate_middle * (
                 -q_w + q_w.round())) * grad_weight / g).sum().unsqueeze(dim=0)
+        grad_weight = indicate_middle * grad_weight
+        # The following operation can make sure that alpha is always greater than zero in any case and can also
+        # suppress the update speed of alpha. (Personal understanding)
+        grad_alpha.clamp_(-alpha.item(), alpha.item())  # FYI
         return grad_weight, grad_alpha, None, None, None
 
 
@@ -66,22 +70,18 @@ class Conv2dLSQ(_Conv2dQ):
 
             # self.alpha.data.copy_(self.weight.abs().max() * 2)
             self.init_state.fill_(1)
-        """ Implementation according to paper. 
-        Feels wrong ...
-        When we initialize the alpha as a big number (e.g., self.weight.abs().max() * 2), 
-        the clamp function can be skipped.
-        Then we get w_q = w / alpha * alpha = w, and $\frac{\partial w_q}{\partial \alpha} = 0$
-        As a result, I don't think the pseudo-code in the paper echoes the formula.
-        Please see 
-        https://quanoview.readthedocs.io/en/latest/_raw/LSQ.html for detailed analysis.
         
+
+        ## Pslease see STE_LSQ.ipynb for detailed comparison.
+        """ Method1: 
         alpha = grad_scale(self.alpha, self.alpha_scale)
         w = self.weight / alpha
         w = w.clamp(-(2 ** (self.nbits - 1)), (2 ** (self.nbits - 1) - 1))
-        q_w = round_pass(w)  # ??? may be error
+        q_w = round_pass(w)
         w_q = q_w * alpha
         """
 
+        # Method2:
         Qn = -2 ** (self.nbits - 1)
         Qp = 2 ** (self.nbits - 1) - 1
         g = math.sqrt(self.weight.numel() * Qp)
