@@ -10,6 +10,11 @@ The PyTorch implementation of Learned Step size Quantization (LSQ) in ICLR2020 (
 | AlexNet  | 56.55, 79.09 | **56.96**, 79.46 [√](https://tensorboard.dev/experiment/MNSkwpg9SJySk201OqJLhw/) | 55.31, 78.59 |  51.18, 75.38 | |
 | ResNet18 | 69.76, 89.08 | **70.26**, 89.34 [√](https://tensorboard.dev/experiment/bRQtjRFDRHGbJyQ6Jd3ztQ/)   |      |      | 69.68  88.92 [√](https://tensorboard.dev/experiment/jqrFL5q1QwSZRz3wSW6LQw/) |
 
+## Hyper-parameter
+| Hyper-parameter | LR   | LR-scheduler      | epochs | batch-size | wd   |
+|-----------------|------|-------------------|--------|------------|------|
+| AlexNet-w4a4    | 0.01 | CosineAnnealingLR | 90     | 2048       | 1e-4 |
+| ResNet18-w4a4   | 0.01 | CosineAnnealingLR | 90     | 512        | 1e-4 |
 
 ## Experimental Results
 ====VGGsmall + Cifar10=======
