@@ -1,6 +1,9 @@
 # LSQuantization
 The PyTorch implementation of Learned Step size Quantization (LSQ) in ICLR2020 (unofficial)
 
+---
+The related project with **training code**: https://github.com/hustzxd/EfficientPyTorch (sorry for late.)
+
 **The project is working in progress, and experimental results on ImageNet are not as good as shown in the paper.**
 
 
