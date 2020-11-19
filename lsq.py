@@ -36,7 +36,8 @@ class FunLSQ(torch.autograd.Function):
         q_w = weight / alpha
         indicate_small = (q_w < Qn).float()
         indicate_big = (q_w > Qp).float()
-        indicate_middle = torch.ones(indicate_small.shape).to(indicate_small.device) - indicate_small - indicate_big
+        # indicate_middle = torch.ones(indicate_small.shape).to(indicate_small.device) - indicate_small - indicate_big
+        indicate_middle = 1.0 - indicate_small - indicate_big # Thanks to @haolibai 
         grad_alpha = ((indicate_small * Qn + indicate_big * Qp + indicate_middle * (
                 -q_w + q_w.round())) * grad_weight * g).sum().unsqueeze(dim=0)
         grad_weight = indicate_middle * grad_weight
